@@ -29,7 +29,7 @@ app.use(cors({
     origin: [
         'http://localhost:3000',
         'http://localhost:3001',
-        ' https://dacs-blog.netlify.app',
+        'https://dacs-blog.netlify.app', // ✅ Sửa đúng không có dấu cách
         'https://test-deploy-iax7t5ucm-huys-projects-6de2b6d7.vercel.app'
     ],
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
