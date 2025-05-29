@@ -18,15 +18,19 @@ const AuthRoutes = require('./routes/AuthRoutes');
 const adminRoutes = require('./routes/AdminRoutes');
 const TestRoutes = require('./routes/TestRoutes');
 const UploadRoutes = require('./routes/UploadRoutes');
-const authenticateToken = require('./middleware/authenticateToken'); // Chỉ dùng authenticateToken, KHÔNG import authMiddleware nữa!
+const authenticateToken = require('./middleware/authenticateToken');
 const tagRoutes = require('./routes/TagRoutes');
-const commentRoutes = require('./routes/CommentRoutes'); // Route này phải mount CHUẨN
+const commentRoutes = require('./routes/CommentRoutes');
 
 const app = express();
 
-// CORS (chuẩn cho cả FE ở 3000 & 3001)
+// ✅ Cấu hình CORS đầy đủ cho local + Vercel
 app.use(cors({
-    origin: ['http://localhost:3000', 'http://localhost:3001'],
+    origin: [
+        'http://localhost:3000',
+        'http://localhost:3001',
+        'https://test-deploy-iax7t5ucm-huys-projects-6de2b6d7.vercel.app'
+    ],
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
     allowedHeaders: ['Content-Type', 'Authorization'],
     credentials: true,
@@ -36,7 +40,7 @@ app.use(cors({
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Đảm bảo folder uploads tồn tại
+// Đảm bảo thư mục uploads tồn tại
 const uploadsDir = path.join(__dirname, 'uploads');
 if (!fs.existsSync(uploadsDir)) {
     fs.mkdirSync(uploadsDir);
@@ -45,16 +49,16 @@ app.use('/uploads', express.static('uploads'));
 
 // Mount routes
 app.use('/api/posts', postRoutes);
-app.use('/api/comments', commentRoutes);   // <-- Quan trọng: Đúng route comment!
+app.use('/api/comments', commentRoutes);
 app.use('/api/users', authenticateToken, UserRoutes);
 app.use('/api', UploadRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/tags', tagRoutes);
 app.use('/api/auth', AuthRoutes);
-app.use('/api', TestRoutes); // route test token
-app.use('/api/blogs', BlogRoutes); // route public blog
+app.use('/api', TestRoutes);
+app.use('/api/blogs', BlogRoutes);
 
-// Passport Facebook cấu hình
+// Passport cấu hình Facebook
 app.use(passport.initialize());
 if (!process.env.FACEBOOK_APP_ID || !process.env.FACEBOOK_APP_SECRET) {
     console.error('❌ Thiếu FACEBOOK_APP_ID hoặc FACEBOOK_APP_SECRET trong .env');
@@ -64,7 +68,7 @@ if (!process.env.FACEBOOK_APP_ID || !process.env.FACEBOOK_APP_SECRET) {
 passport.use(new FacebookStrategy({
     clientID: process.env.FACEBOOK_APP_ID,
     clientSecret: process.env.FACEBOOK_APP_SECRET,
-    callbackURL: 'http://localhost:5001/auth/facebook/callback', // Nhớ check trùng với hệ thống local
+    callbackURL: 'http://localhost:5001/auth/facebook/callback',
     profileFields: ['id', 'displayName', 'email', 'photos']
 }, async (accessToken, refreshToken, profile, done) => {
     try {
@@ -92,7 +96,6 @@ app.get('/auth/facebook/callback',
     passport.authenticate('facebook', { session: false }),
     (req, res) => {
         const { user, token } = req.user;
-        // Redirect chuẩn tới đúng local FE
         res.redirect(`http://localhost:3001/login?token=${token}&user=${encodeURIComponent(JSON.stringify({
             id: user._id,
             name: user.name,
@@ -102,7 +105,7 @@ app.get('/auth/facebook/callback',
     }
 );
 
-// Route test server
+// Route test
 app.get('/test', (req, res) => {
     res.status(200).json({ message: 'Server đang hoạt động' });
 });
