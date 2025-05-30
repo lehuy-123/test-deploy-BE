@@ -24,12 +24,12 @@ const commentRoutes = require('./routes/CommentRoutes');
 
 const app = express();
 
-// ✅ Cấu hình CORS đầy đủ cho local + Vercel
+// ✅ Cấu hình CORS đầy đủ cho local + các domain FE đã deploy
 app.use(cors({
     origin: [
         'http://localhost:3000',
         'http://localhost:3001',
-        'https://dacs-blog.netlify.app', // ✅ Sửa đúng không có dấu cách
+        'https://dacs-blog.netlify.app',
         'https://test-deploy-iax7t5ucm-huys-projects-6de2b6d7.vercel.app'
     ],
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
@@ -106,9 +106,24 @@ app.get('/auth/facebook/callback',
     }
 );
 
-// Route test
+// Route test server API
 app.get('/test', (req, res) => {
     res.status(200).json({ message: 'Server đang hoạt động' });
+});
+
+// ✅ Route root "/" để phục vụ xác thực Render/Prerender/SEO healthcheck
+app.get('/', (req, res) => {
+    res.send(`
+        <html>
+            <head>
+                <title>Backend API - Blog Project</title>
+            </head>
+            <body style="font-family: sans-serif; text-align: center; margin-top: 60px;">
+                <h1>Backend API đang chạy (OK)!</h1>
+                <p>Chào mừng bạn đến với API Blog Project. <br />Hệ thống hoạt động ổn định.</p>
+            </body>
+        </html>
+    `);
 });
 
 // Global error handler
