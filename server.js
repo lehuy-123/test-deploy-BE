@@ -29,15 +29,14 @@ app.use(cors({
     origin: [
         'http://localhost:3000',
         'http://localhost:3001',
-        'blogn4.netlify.app'
-       
+        'https://blogn4.netlify.app',
+        'https://www.blogn4.netlify.app'
     ],
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
     allowedHeaders: ['Content-Type', 'Authorization'],
     credentials: true,
     optionsSuccessStatus: 200
 }));
-
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
