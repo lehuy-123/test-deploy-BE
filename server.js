@@ -29,8 +29,8 @@ app.use(cors({
     origin: [
         'http://localhost:3000',
         'http://localhost:3001',
-        'https://dacs-blog.netlify.app',
-        'https://test-deploy-iax7t5ucm-huys-projects-6de2b6d7.vercel.app'
+        'blogn4.netlify.app'
+       
     ],
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
     allowedHeaders: ['Content-Type', 'Authorization'],
