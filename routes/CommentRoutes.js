@@ -5,6 +5,36 @@ const Comment = require('../models/Comment');
 const Blog = require('../models/Blog');
 const authenticateToken = require('../middleware/authenticateToken'); // ✅ Dùng đúng middleware này
 
+
+router.post('/:commentId/reply', authenticateToken, async (req, res) => {
+  try {
+    const { content } = req.body;
+    const parentId = req.params.commentId;
+    const userId = req.user.userId;
+
+    const parentComment = await Comment.findById(parentId);
+    if (!parentComment) {
+      return res.status(404).json({ message: 'Không tìm thấy bình luận cha' });
+    }
+
+    const reply = new Comment({
+      content,
+      blog: parentComment.blog,
+      user: userId,
+      parentId: parentId
+    });
+
+    await reply.save();
+    res.status(201).json({ success: true, reply });
+  } catch (err) {
+    res.status(500).json({ message: 'Lỗi khi trả lời bình luận', error: err.message });
+  }
+});
+
+
+
+
+
 // [1] Tạo bình luận mới vào collection 'comments'
 router.post('/', authenticateToken, async (req, res, next) => {
   try {
@@ -50,18 +80,27 @@ router.get('/', authenticateToken, async (req, res, next) => {
   }
 });
 
-// [3] Lấy bình luận theo bài viết
+// [3] Lấy bình luận theo bài viết, tách root và reply
 router.get('/blog/:blogId', async (req, res, next) => {
   try {
-    const comments = await Comment.find({ blog: req.params.blogId })
+    const allComments = await Comment.find({ blog: req.params.blogId })
       .populate('user', 'name email')
-      .sort({ createdAt: -1 });
+      .sort({ createdAt: 1 }); // sắp xếp theo thời gian tăng dần
 
-    res.status(200).json({ success: true, comments });
+    // Tách comment gốc và reply
+    const rootComments = allComments.filter(c => !c.parentId);
+    const replies = allComments.filter(c => c.parentId);
+
+    res.status(200).json({
+      success: true,
+      comments: rootComments,
+      replies: replies
+    });
   } catch (error) {
     next(error);
   }
 });
+
 
 // [4] Xoá bình luận (admin hoặc chủ sở hữu)
 // [4] Xoá bình luận (admin hoặc chủ sở hữu)

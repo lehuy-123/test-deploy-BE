@@ -63,3 +63,30 @@ exports.deleteComment = async (req, res) => {
     res.status(500).json({ message: 'Lỗi xoá bình luận', error: err.message });
   }
 };
+
+
+
+exports.replyToComment = async (req, res) => {
+  try {
+    const parentId = req.params.commentId;
+    const { content } = req.body;
+    const userId = req.user.userId;
+
+    const parentComment = await Comment.findById(parentId);
+    if (!parentComment) {
+      return res.status(404).json({ message: 'Không tìm thấy comment cha' });
+    }
+
+    const reply = new Comment({
+      content,
+      blog: parentComment.blog, // cùng bài viết
+      user: userId,
+      parentId
+    });
+
+    await reply.save();
+    res.status(201).json({ success: true, comment: reply });
+  } catch (error) {
+    res.status(500).json({ message: 'Lỗi khi trả lời bình luận', error: error.message });
+  }
+};
